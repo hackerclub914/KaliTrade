@@ -395,9 +395,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 **Contact**
 
 - **Website**: [https://kaltrade.com](https://kaltrade.com)
-- **Email**: support@kaltrade.com
+- **Email**: devyruxpin@gmail.com
 - **Twitter**: [@KaliTrade](https://twitter.com/kaltrade)
-- **LinkedIn**: [KaliTrade](https://linkedin.com/company/kaltrade)
+- **LinkedIn**: [KaliTrade](https://linkedin.com/DevyRuxpin)
 
 ---
 
