@@ -13,22 +13,18 @@
 
 <div align="center">
 
-### 🏠 Main Dashboard
-<img src="screenshots/main-dashboard.png" alt="Main Dashboard" width="800" />
+### 🏠 KaliTrade Home
+<img src="screenshots/KaliTradeHome.png" alt="KaliTrade Home Dashboard" width="800" />
 
-### 🤖 AI Trading Assistant
-<img src="screenshots/ai-chat.png" alt="AI Trading Assistant" width="800" />
+### 🤖 AI Trading Bot View
+<img src="screenshots/AIbotView.png" alt="AI Trading Bot Interface" width="800" />
 
-### 📊 Advanced Trading Platform
-<img src="screenshots/advanced-platform.png" alt="Advanced Platform" width="800" />
-
-### 💼 Trading Dashboard
-<img src="screenshots/trading-dashboard.png" alt="Trading Dashboard" width="800" />
-
-### 📱 Mobile Experience
-<img src="screenshots/mobile-dashboard.png" alt="Mobile Dashboard" width="400" />
+### 📊 Trading View
+<img src="screenshots/TradingView.png" alt="Advanced Trading Platform" width="800" />
 
 </div>
+
+> **Note:** Additional screenshots can be added to the `screenshots/` folder. See [screenshots/README.md](screenshots/README.md) for guidelines on adding new screenshots.
 
 ## 🌟 **Overview**
 
