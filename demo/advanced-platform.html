@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaliTrade - Advanced Trading Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --background: #0f0f23;
+            --surface: #1a1a2e;
+            --surface-light: #16213e;
+            --text: #ffffff;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: rgba(0, 0, 0, 0.3);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated Background */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            z-index: -2;
+        }
+
+        .background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-10px) translateY(-5px); }
+            50% { transform: translateX(5px) translateY(-10px); }
+            75% { transform: translateX(-5px) translateY(5px); }
+        }
+
+        /* Layout */
+        .container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 80px 1fr;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .crypto-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .crypto-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .crypto-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .crypto-item.active {
+            background: var(--gradient);
+            border-color: var(--primary);
+        }
+
+        .crypto-symbol {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .crypto-price {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .crypto-change {
+            font-size: 0.8rem;
+        }
+
+        .positive { color: var(--success); }
+        .negative { color: var(--error); }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            height: 500px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .timeframe-btn {
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .timeframe-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .timeframe-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        /* AI Chat Section */
+        .ai-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            height: 400px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .ai-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .chat-container {
+            height: 280px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .chat-message.user {
+            background: var(--primary);
+            margin-left: auto;
+        }
+
+        .chat-message.ai {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .send-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .metric-change {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Mobile Sidebar Toggle */
+        .sidebar-toggle {
+            display: none;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            color: var(--text);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar.mobile-open {
+            transform: translateX(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 80px 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 300px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+                display: block;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .search-box {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .chart-section {
+                height: 400px;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+            
+            .search-box {
+                width: 150px;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .ai-section {
+                height: 350px;
+            }
+            
+            .chat-container {
+                height: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .logo-text {
+                font-size: 1.2rem;
+            }
+            
+            .search-box {
+                width: 120px;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-section {
+                height: 300px;
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="logo-text">KaliTrade</div>
+            </div>
+            
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search cryptocurrencies..." id="searchInput">
+            </div>
+            
+            <div class="header-actions">
+                <div class="status-indicators">
+                    <div class="status-dot"></div>
+                    <div class="status-dot"></div>
+                    <div class="status-dot"></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <h3 class="section-title">Popular Cryptos</h3>
+                <div class="crypto-list" id="cryptoList">
+                    <div class="loading"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="metrics-grid" id="metricsGrid">
+                <div class="metric-card">
+                    <div class="metric-title">Current Price</div>
+                    <div class="metric-value" id="currentPrice">--</div>
+                    <div class="metric-change" id="priceChange">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">24h Volume</div>
+                    <div class="metric-value" id="volume24h">--</div>
+                    <div class="metric-change" id="volumeChange">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Market Cap</div>
+                    <div class="metric-value" id="marketCap">--</div>
+                    <div class="metric-change" id="marketCapChange">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">AI Signal</div>
+                    <div class="metric-value" id="aiSignal">--</div>
+                    <div class="metric-change" id="aiConfidence">--</div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h2 class="chart-title" id="chartTitle">BTC/USDT Chart</h2>
+                    <div class="chart-controls">
+                        <button class="timeframe-btn active" data-timeframe="1h">1H</button>
+                        <button class="timeframe-btn" data-timeframe="4h">4H</button>
+                        <button class="timeframe-btn" data-timeframe="1d">1D</button>
+                        <button class="timeframe-btn" data-timeframe="1w">1W</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h2 class="ai-title">AI Trading Assistant</h2>
+                </div>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-message ai">
+                        <strong>AI Assistant:</strong> Hello! I'm your AI trading assistant. Ask me anything about cryptocurrencies, market analysis, or trading strategies. What would you like to know?
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Ask about any cryptocurrency or trading strategy...">
+                    <button class="send-btn" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="advanced-data-service.js"></script>
+    <script src="ai-assistant.js"></script>
+    <script>
+        class AdvancedTradingPlatform {
+            constructor() {
+                this.dataService = null;
+                this.aiAssistant = null;
+                this.currentSymbol = 'BTCUSDT';
+                this.chart = null;
+                this.chatHistory = [];
+                this.updateInterval = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Initializing Advanced Trading Platform...');
+                
+                // Initialize advanced data service
+                this.dataService = new AdvancedDataService();
+                await this.dataService.init();
+                
+                // Initialize AI assistant
+                this.aiAssistant = new AdvancedAIAssistant(this.dataService);
+                console.log('✅ AI assistant initialized');
+                
+                // Initialize components
+                await this.loadCryptoList();
+                await this.loadCurrentCrypto();
+                this.initChart();
+                this.setupEventListeners();
+                this.startRealTimeUpdates();
+                
+                console.log('✅ Advanced Trading Platform initialized');
+            }
+
+            async loadCryptoList() {
+                try {
+                    const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'ADAUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT'];
+                    const cryptoList = document.getElementById('cryptoList');
+                    cryptoList.innerHTML = '';
+
+                    for (const symbol of symbols) {
+                        try {
+                            const priceData = await this.dataService.getRealTimePrice(symbol);
+                            const cryptoItem = this.createCryptoItem(symbol, priceData);
+                            cryptoList.appendChild(cryptoItem);
+                        } catch (error) {
+                            console.error(`Error loading ${symbol}:`, error);
+                            const fallbackItem = this.createFallbackCryptoItem(symbol);
+                            cryptoList.appendChild(fallbackItem);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading crypto list:', error);
+                }
+            }
+
+            createCryptoItem(symbol, priceData) {
+                const item = document.createElement('div');
+                item.className = 'crypto-item';
+                if (symbol === this.currentSymbol) item.classList.add('active');
+                
+                item.onclick = () => this.selectCrypto(symbol);
+                
+                const changeClass = priceData.change24h >= 0 ? 'positive' : 'negative';
+                const changeSymbol = priceData.change24h >= 0 ? '+' : '';
+                
+                item.innerHTML = `
+                    <div class="crypto-symbol">${symbol.replace('USDT', '')}</div>
+                    <div>
+                        <div class="crypto-price">$${priceData.price.toLocaleString()}</div>
+                        <div class="crypto-change ${changeClass}">${changeSymbol}${priceData.change24h.toFixed(2)}%</div>
+                    </div>
+                `;
+                
+                return item;
+            }
+
+            createFallbackCryptoItem(symbol) {
+                const item = document.createElement('div');
+                item.className = 'crypto-item';
+                if (symbol === this.currentSymbol) item.classList.add('active');
+                
+                item.onclick = () => this.selectCrypto(symbol);
+                
+                const fallbackPrices = {
+                    'BTCUSDT': 114104,
+                    'ETHUSDT': 3450,
+                    'SOLUSDT': 185,
+                    'BNBUSDT': 650,
+                    'ADAUSDT': 0.5,
+                    'DOTUSDT': 6.5,
+                    'LINKUSDT': 14.5,
+                    'MATICUSDT': 0.85
+                };
+                
+                const price = fallbackPrices[symbol] || 100;
+                const change = (Math.random() - 0.5) * 10;
+                const changeClass = change >= 0 ? 'positive' : 'negative';
+                const changeSymbol = change >= 0 ? '+' : '';
+                
+                item.innerHTML = `
+                    <div class="crypto-symbol">${symbol.replace('USDT', '')}</div>
+                    <div>
+                        <div class="crypto-price">$${price.toLocaleString()}</div>
+                        <div class="crypto-change ${changeClass}">${changeSymbol}${change.toFixed(2)}%</div>
+                    </div>
+                `;
+                
+                return item;
+            }
+
+            async selectCrypto(symbol) {
+                this.currentSymbol = symbol;
+                
+                // Update active state
+                document.querySelectorAll('.crypto-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.target.closest('.crypto-item').classList.add('active');
+                
+                // Load new crypto data
+                await this.loadCurrentCrypto();
+                this.updateChart();
+            }
+
+            async loadCurrentCrypto() {
+                try {
+                    const priceData = await this.dataService.getRealTimePrice(this.currentSymbol);
+                    const aiAnalysis = await this.dataService.getAdvancedAIAnalysis(this.currentSymbol);
+                    
+                    // Update metrics
+                    document.getElementById('currentPrice').textContent = `$${priceData.price.toLocaleString()}`;
+                    document.getElementById('priceChange').textContent = `${priceData.change24h >= 0 ? '+' : ''}${priceData.change24h.toFixed(2)}%`;
+                    document.getElementById('priceChange').className = `metric-change ${priceData.change24h >= 0 ? 'positive' : 'negative'}`;
+                    
+                    document.getElementById('volume24h').textContent = priceData.volume24h ? `$${(priceData.volume24h / 1000000).toFixed(1)}M` : '--';
+                    
+                    document.getElementById('aiSignal').textContent = aiAnalysis?.signal || 'HOLD';
+                    document.getElementById('aiConfidence').textContent = aiAnalysis ? `${aiAnalysis.confidence}% confidence` : '--';
+                    
+                    document.getElementById('chartTitle').textContent = `${this.currentSymbol.replace('USDT', '/USDT')} Chart`;
+                    
+                } catch (error) {
+                    console.error('Error loading current crypto:', error);
+                }
+            }
+
+            initChart() {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Price',
+                            data: [],
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#ffffff'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#94a3b8'
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#94a3b8',
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+                
+                this.updateChart();
+            }
+
+            async updateChart() {
+                try {
+                    // Generate sample data for demonstration
+                    const dataPoints = 50;
+                    const now = new Date();
+                    const labels = [];
+                    const data = [];
+                    
+                    let basePrice = 114104; // BTC base price
+                    if (this.currentSymbol === 'ETHUSDT') basePrice = 3450;
+                    else if (this.currentSymbol === 'SOLUSDT') basePrice = 185;
+                    else if (this.currentSymbol === 'BNBUSDT') basePrice = 650;
+                    
+                    for (let i = dataPoints - 1; i >= 0; i--) {
+                        const time = new Date(now.getTime() - (i * 60 * 60 * 1000)); // Hourly data
+                        labels.push(time.toLocaleTimeString());
+                        
+                        const randomChange = (Math.random() - 0.5) * 0.02; // ±1% change
+                        basePrice *= (1 + randomChange);
+                        data.push(basePrice);
+                    }
+                    
+                    this.chart.data.labels = labels;
+                    this.chart.data.datasets[0].data = data;
+                    this.chart.data.datasets[0].label = this.currentSymbol.replace('USDT', '');
+                    this.chart.update('none');
+                    
+                } catch (error) {
+                    console.error('Error updating chart:', error);
+                }
+            }
+
+            setupEventListeners() {
+                // Timeframe buttons
+                document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.updateChart();
+                    });
+                });
+
+                // Chat input
+                const chatInput = document.getElementById('chatInput');
+                const sendBtn = document.getElementById('sendBtn');
+                
+                const sendMessage = () => {
+                    const message = chatInput.value.trim();
+                    if (message) {
+                        this.sendChatMessage(message);
+                        chatInput.value = '';
+                    }
+                };
+                
+                sendBtn.addEventListener('click', sendMessage);
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') sendMessage();
+                });
+
+                // Search functionality
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase();
+                    this.filterCryptos(query);
+                });
+
+                // Mobile sidebar toggle
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebar = document.getElementById('sidebar');
+                const sidebarOverlay = document.getElementById('sidebarOverlay');
+                
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('mobile-open');
+                    sidebarOverlay.style.display = sidebar.classList.contains('mobile-open') ? 'block' : 'none';
+                });
+                
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.remove('mobile-open');
+                    sidebarOverlay.style.display = 'none';
+                });
+
+                // Close sidebar when clicking on crypto items (mobile)
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.crypto-item') && window.innerWidth <= 1024) {
+                        sidebar.classList.remove('mobile-open');
+                        sidebarOverlay.style.display = 'none';
+                    }
+                });
+            }
+
+            async sendChatMessage(message) {
+                const chatContainer = document.getElementById('chatContainer');
+                
+                // Add user message
+                const userMessage = document.createElement('div');
+                userMessage.className = 'chat-message user';
+                userMessage.innerHTML = `<strong>You:</strong> ${message}`;
+                chatContainer.appendChild(userMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Show typing indicator
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'chat-message ai';
+                typingIndicator.innerHTML = '<div class="loading"></div> AI is thinking...';
+                chatContainer.appendChild(typingIndicator);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                try {
+                    // Generate AI response
+                    const aiResponse = await this.generateAIResponse(message);
+                    
+                    // Remove typing indicator
+                    typingIndicator.remove();
+                    
+                    // Add AI response
+                    const aiMessage = document.createElement('div');
+                    aiMessage.className = 'chat-message ai';
+                    aiMessage.innerHTML = `<strong>AI Assistant:</strong> ${aiResponse}`;
+                    chatContainer.appendChild(aiMessage);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    
+                } catch (error) {
+                    console.error('Error generating AI response:', error);
+                    typingIndicator.remove();
+                    
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'chat-message ai';
+                    errorMessage.innerHTML = '<strong>AI Assistant:</strong> Sorry, I encountered an error. Please try again.';
+                    chatContainer.appendChild(errorMessage);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            }
+
+            async generateAIResponse(message) {
+                // Use the advanced AI assistant
+                const currentSymbol = this.currentCrypto?.symbol || 'BTCUSDT';
+                
+                try {
+                    return await this.aiAssistant.generateIntelligentResponse(message, currentSymbol);
+                } catch (error) {
+                    console.error('Error generating AI response:', error);
+                    return `I'm an advanced AI trading assistant with access to real-time market data and professional analysis tools. I can help you with:\n\n• **Price Analysis** - Current prices, trends, and key levels\n• **Technical Analysis** - RSI, MACD, moving averages, and indicators\n• **Trading Recommendations** - Buy/sell signals with risk assessment\n• **Portfolio Advice** - Position sizing and diversification\n• **Risk Management** - Stop losses, take profits, and risk assessment\n• **Market Sentiment** - Bullish/bearish analysis and psychology\n• **Strategy Advice** - Trading approaches and techniques\n\nWhat specific aspect of trading would you like help with?`;
+                }
+            }
+
+            filterCryptos(query) {
+                const cryptoItems = document.querySelectorAll('.crypto-item');
+                cryptoItems.forEach(item => {
+                    const symbol = item.querySelector('.crypto-symbol').textContent.toLowerCase();
+                    if (symbol.includes(query)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            startRealTimeUpdates() {
+                // Update data every 30 seconds
+                this.updateInterval = setInterval(() => {
+                    this.loadCryptoList();
+                    this.loadCurrentCrypto();
+                }, 30000);
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new AdvancedTradingPlatform();
+        });
+    </script>
+</body>
+</html>

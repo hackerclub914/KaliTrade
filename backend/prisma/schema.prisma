@@ -1,0 +1,304 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  avatar    String?
+  isActive  Boolean  @default(true)
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  exchangeConnections ExchangeConnection[]
+  tradingStrategies   TradingStrategy[]
+  trades             Trade[]
+  portfolios         Portfolio[]
+  notifications      Notification[]
+  apiKeys            ApiKey[]
+  sessions           Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model ExchangeConnection {
+  id           String   @id @default(cuid())
+  userId       String
+  exchangeName String
+  exchangeId   String   // Exchange-specific user ID
+  accessToken  String?  // OAuth access token
+  refreshToken String?  // OAuth refresh token
+  expiresAt    DateTime?
+  permissions  String[] // Array of permissions granted
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exchangeName])
+  @@map("exchange_connections")
+}
+
+model TradingStrategy {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  type        StrategyType
+  config      Json     // Strategy-specific configuration
+  isActive    Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades Trade[]
+
+  @@map("trading_strategies")
+}
+
+model Trade {
+  id           String     @id @default(cuid())
+  userId       String
+  strategyId   String?
+  symbol       String
+  side         TradeSide
+  type         TradeType
+  amount       Decimal
+  price        Decimal
+  fee          Decimal    @default(0)
+  status       TradeStatus
+  exchangeName String
+  exchangeId   String?    // Exchange-specific trade ID
+  executedAt   DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategy TradingStrategy? @relation(fields: [strategyId], references: [id])
+
+  @@map("trades")
+}
+
+model Order {
+  id               String   @id @default(cuid())
+  userId           String
+  exchangeName     String
+  exchangeOrderId  String
+  symbol           String
+  side             TradeSide
+  type             TradeType
+  quantity         Decimal
+  price            Decimal?
+  status           TradeStatus
+  filledQuantity   Decimal  @default(0)
+  averagePrice     Decimal?
+  config           Json?    // Advanced order configuration
+  exchangeData     Json?    // Exchange-specific data
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model Portfolio {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  totalValue   Decimal  @default(0)
+  totalCost    Decimal  @default(0)
+  totalProfit  Decimal  @default(0)
+  profitMargin Decimal  @default(0)
+  positions    Json     // Array of positions
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("portfolios")
+}
+
+model MarketData {
+  id        String   @id @default(cuid())
+  symbol    String
+  exchange  String
+  open      Decimal
+  high      Decimal
+  low       Decimal
+  close     Decimal
+  volume    Decimal
+  timestamp DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([symbol, exchange, timestamp])
+  @@map("market_data")
+}
+
+model PerformanceMetric {
+  id           String   @id @default(cuid())
+  userId       String
+  date         DateTime
+  totalReturn  Decimal
+  sharpeRatio  Decimal
+  maxDrawdown  Decimal
+  createdAt    DateTime @default(now())
+
+  @@map("performance_metrics")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // Additional data
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  key       String   @unique
+  permissions String[] // Array of permissions
+  isActive  Boolean  @default(true)
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+model TradingSession {
+  id           String   @id @default(cuid())
+  userId       String
+  strategyId   String?
+  startTime    DateTime
+  endTime      DateTime?
+  status       SessionStatus
+  totalTrades  Int      @default(0)
+  totalProfit  Decimal  @default(0)
+  maxDrawdown  Decimal  @default(0)
+  sharpeRatio  Decimal?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("trading_sessions")
+}
+
+model BacktestResult {
+  id           String   @id @default(cuid())
+  userId       String
+  strategyId   String?
+  symbol       String
+  startDate    DateTime
+  endDate      DateTime
+  totalTrades  Int
+  winRate      Decimal
+  totalReturn  Decimal
+  sharpeRatio  Decimal
+  maxDrawdown  Decimal
+  config       Json     // Strategy configuration used
+  createdAt    DateTime @default(now())
+
+  @@map("backtest_results")
+}
+
+model OAuthState {
+  id        String   @id @default(cuid())
+  state     String   @unique
+  userId    String
+  exchange  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("oauth_states")
+}
+
+// Enums
+enum StrategyType {
+  MOVING_AVERAGE_CROSSOVER
+  RSI_DIVERGENCE
+  BOLLINGER_BANDS
+  MACD_SIGNAL
+  GRID_TRADING
+  DCA
+  ARBITRAGE
+  MARKET_MAKING
+  CUSTOM_AI
+  SENTIMENT_ANALYSIS
+}
+
+enum TradeSide {
+  BUY
+  SELL
+}
+
+enum TradeType {
+  MARKET
+  LIMIT
+  STOP
+  STOP_LIMIT
+}
+
+enum TradeStatus {
+  PENDING
+  FILLED
+  CANCELLED
+  REJECTED
+  PARTIALLY_FILLED
+}
+
+enum NotificationType {
+  TRADE_EXECUTED
+  STRATEGY_ALERT
+  RISK_WARNING
+  PROFIT_TARGET
+  STOP_LOSS
+  SYSTEM_UPDATE
+  ACCOUNT_UPDATE
+}
+
+enum SessionStatus {
+  RUNNING
+  PAUSED
+  STOPPED
+  COMPLETED
+  ERROR
+}

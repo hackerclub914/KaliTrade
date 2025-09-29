@@ -1,0 +1,51 @@
+{
+  "name": "kali-trade-unified",
+  "version": "1.0.0",
+  "description": "Unified Crypto Trading Platform with AI-Powered Analysis",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js start",
+    "stop": "node app.js stop",
+    "status": "node app.js status",
+    "dev": "node app.js start",
+    "build": "cd backend && npm run build",
+    "install-deps": "cd backend && npm install",
+    "setup": "./start.sh",
+    "backend": "cd backend && npm start",
+    "bot": "cd trading-bot && python3 main_simple.py"
+  },
+  "keywords": [
+    "crypto",
+    "trading",
+    "ai",
+    "blockchain",
+    "bitcoin",
+    "ethereum",
+    "trading-bot",
+    "portfolio",
+    "analytics"
+  ],
+  "author": "KaliTrade Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kalitrade/kali-trade-unified.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kalitrade/kali-trade-unified/issues"
+  },
+  "homepage": "https://kalitrade.com"
+}

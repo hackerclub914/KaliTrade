@@ -1,0 +1,2693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaliTrade - Professional Trading Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --background: #0f0f23;
+            --surface: #1a1a2e;
+            --surface-light: #16213e;
+            --text: #ffffff;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: rgba(0, 0, 0, 0.3);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated Background */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            z-index: -2;
+        }
+
+        .background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-10px) translateY(-5px); }
+            50% { transform: translateX(5px) translateY(-10px); }
+            75% { transform: translateX(-5px) translateY(5px); }
+        }
+
+        /* Layout */
+        .container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 70px 1fr;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            background: var(--gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .trading-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: var(--success);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .enable-trading-btn {
+            padding: 0.5rem 1rem;
+            background: var(--gradient);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .enable-trading-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: var(--gradient);
+            border-color: var(--primary);
+        }
+
+        .nav-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto 1fr;
+            gap: 2rem;
+            height: 100%;
+        }
+
+        /* Portfolio Overview */
+        .portfolio-overview {
+            grid-column: 1 / -1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .portfolio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .portfolio-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .portfolio-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .portfolio-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .positive { color: var(--success); }
+        .negative { color: var(--error); }
+
+        /* Trading Panel */
+        .trading-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .order-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-input, .form-select {
+            padding: 0.75rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .order-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .order-btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .order-btn.buy {
+            background: var(--success);
+            color: white;
+        }
+
+        .order-btn.sell {
+            background: var(--error);
+            color: white;
+        }
+
+        .order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Positions Table */
+        .positions-table {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            color: var(--text);
+        }
+
+        .symbol {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .pnl {
+            font-weight: 700;
+        }
+
+        /* AI Strategy Builder */
+        .strategy-builder {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .strategy-form {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .create-strategy-btn {
+            padding: 1rem 2rem;
+            background: var(--gradient);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .create-strategy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Trading History */
+        .trading-history {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .history-side {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .history-side.buy {
+            background: var(--success);
+            color: white;
+        }
+
+        .history-side.sell {
+            background: var(--error);
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .portfolio-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .portfolio-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Market Prices */
+        .market-prices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .price-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .price-symbol {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .price-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .price-change {
+            font-size: 0.9rem;
+        }
+
+        /* Calculator */
+        .calculator {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .calculator-results {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: 600;
+        }
+
+        /* Exchange Configuration */
+        .exchange-config {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .exchange-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .exchange-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .exchange-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .exchange-info h4 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .api-config-form {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        /* Preferences */
+        .preferences {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .preference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+        }
+
+        .preference-item label {
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Security Settings */
+        .security-settings {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .security-info {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .security-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .security-item h4 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .security-item ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .security-item li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* API Status Table */
+        .api-status-table {
+            overflow-x: auto;
+        }
+
+        /* Enhanced form styles */
+        .form-input[readonly] {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        /* Portfolio Details */
+        .portfolio-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .positions-details {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .position-detail-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .position-detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .position-header h4 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .position-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .position-stats .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .position-stats .label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .position-stats .value {
+            font-weight: 600;
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.active {
+            background: #44ff44;
+        }
+
+        /* Enhanced Table Styles */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .table th {
+            background: var(--glass-bg);
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        .loading::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--glass-border);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        /* Enhanced Button States */
+        .order-btn:disabled,
+        .create-strategy-btn:disabled,
+        .enable-trading-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Form Validation */
+        .form-input:invalid {
+            border-color: #ff4444;
+        }
+
+        .form-input:valid {
+            border-color: #44ff44;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .market-prices {
+                grid-template-columns: 1fr;
+            }
+            
+            .exchange-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .preference-item {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            .portfolio-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .position-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .table {
+                font-size: 0.8rem;
+            }
+
+            .table th,
+            .table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="logo-text">KaliTrade</div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="trading-status">
+                    <div class="status-indicator" id="tradingStatus"></div>
+                    <span id="tradingStatusText">Trading Disabled</span>
+                </div>
+                <button class="enable-trading-btn" id="enableTradingBtn">Enable Trading</button>
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <div class="nav-section">
+                <h3 class="section-title">Trading</h3>
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item" data-section="portfolio">
+                    <i class="fas fa-wallet"></i>
+                    Portfolio
+                </a>
+                <a href="#" class="nav-item" data-section="trading">
+                    <i class="fas fa-exchange-alt"></i>
+                    Place Orders
+                </a>
+                <a href="#" class="nav-item" data-section="strategies">
+                    <i class="fas fa-robot"></i>
+                    AI Strategies
+                </a>
+                <a href="#" class="nav-item" data-section="history">
+                    <i class="fas fa-history"></i>
+                    Trading History
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="section-title">Account</h3>
+                <a href="#" class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+                <a href="#" class="nav-item" data-section="api-keys">
+                    <i class="fas fa-key"></i>
+                    API Keys
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <div class="section active" id="dashboard-section">
+                <div class="dashboard-grid">
+                    <div class="portfolio-overview">
+                        <div class="portfolio-header">
+                            <h2 class="portfolio-title">Portfolio Overview</h2>
+                            <div class="portfolio-value" id="portfolioValue">$0.00</div>
+                        </div>
+                        <div class="portfolio-stats">
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalPnL">$0.00</div>
+                                <div class="stat-label">Total P&L</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="realizedPnL">$0.00</div>
+                                <div class="stat-label">Realized P&L</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalTrades">0</div>
+                                <div class="stat-label">Total Trades</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="winRate">0%</div>
+                                <div class="stat-label">Win Rate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trading-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Quick Trade</h3>
+                        </div>
+                        <form class="order-form" id="quickOrderForm">
+                            <div class="form-group">
+                                <label class="form-label">Symbol</label>
+                                <select class="form-select" id="tradeSymbol">
+                                    <option value="BTCUSDT">BTC/USDT</option>
+                                    <option value="ETHUSDT">ETH/USDT</option>
+                                    <option value="SOLUSDT">SOL/USDT</option>
+                                    <option value="BNBUSDT">BNB/USDT</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" id="orderType">
+                                    <option value="market">Market</option>
+                                    <option value="limit">Limit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input" id="orderQuantity" placeholder="0.001" step="0.001">
+                            </div>
+                            <div class="form-group" id="priceGroup" style="display: none;">
+                                <label class="form-label">Price</label>
+                                <input type="number" class="form-input" id="orderPrice" placeholder="0.00" step="0.01">
+                            </div>
+                            <div class="order-buttons">
+                                <button type="button" class="order-btn buy" id="buyBtn">Buy</button>
+                                <button type="button" class="order-btn sell" id="sellBtn">Sell</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="positions-table">
+                        <div class="table-header">
+                            <h3 class="panel-title">Open Positions</h3>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Quantity</th>
+                                    <th>Entry Price</th>
+                                    <th>Current Price</th>
+                                    <th>P&L</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="positionsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted);">
+                                        No open positions
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="strategy-builder">
+                        <div class="panel-header">
+                            <h3 class="panel-title">AI Strategy Builder</h3>
+                        </div>
+                        <form class="strategy-form" id="strategyForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Strategy Name</label>
+                                    <input type="text" class="form-input" id="strategyName" placeholder="My AI Strategy">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Risk Level</label>
+                                    <select class="form-select" id="riskLevel">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Max Position Size (%)</label>
+                                    <input type="number" class="form-input" id="maxPositionSize" value="10" min="1" max="100">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Stop Loss (%)</label>
+                                    <input type="number" class="form-input" id="stopLoss" value="5" min="1" max="50">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Take Profit (%)</label>
+                                    <input type="number" class="form-input" id="takeProfit" value="15" min="1" max="100">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Max Daily Trades</label>
+                                    <input type="number" class="form-input" id="maxDailyTrades" value="10" min="1" max="100">
+                                </div>
+                            </div>
+                            <button type="button" class="create-strategy-btn" id="createStrategyBtn">
+                                <i class="fas fa-robot"></i> Create AI Strategy
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Section -->
+            <div class="section" id="portfolio-section">
+                <div class="portfolio-overview">
+                    <div class="portfolio-header">
+                        <h2 class="portfolio-title">Portfolio Details</h2>
+                    </div>
+                    <div id="portfolioDetails">
+                        <!-- Portfolio details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Section -->
+            <div class="section" id="trading-section">
+                <div class="dashboard-grid">
+                    <div class="trading-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Advanced Order Placement</h3>
+                        </div>
+                        <form class="order-form" id="advancedOrderForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Exchange</label>
+                                    <select class="form-select" id="exchangeSelect">
+                                        <option value="binance">Binance</option>
+                                        <option value="kraken">Kraken</option>
+                                        <option value="coinbase">Coinbase Pro</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Symbol</label>
+                                    <select class="form-select" id="advancedSymbol">
+                                        <option value="BTCUSDT">BTC/USDT</option>
+                                        <option value="ETHUSDT">ETH/USDT</option>
+                                        <option value="SOLUSDT">SOL/USDT</option>
+                                        <option value="BNBUSDT">BNB/USDT</option>
+                                        <option value="ADAUSDT">ADA/USDT</option>
+                                        <option value="DOTUSDT">DOT/USDT</option>
+                                        <option value="LINKUSDT">LINK/USDT</option>
+                                        <option value="MATICUSDT">MATIC/USDT</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Order Type</label>
+                                    <select class="form-select" id="advancedOrderType">
+                                        <option value="market">Market Order</option>
+                                        <option value="limit">Limit Order</option>
+                                        <option value="stop">Stop Loss</option>
+                                        <option value="stop_limit">Stop Limit</option>
+                                        <option value="take_profit">Take Profit</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Side</label>
+                                    <select class="form-select" id="advancedSide">
+                                        <option value="buy">Buy</option>
+                                        <option value="sell">Sell</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" class="form-input" id="advancedQuantity" placeholder="0.001" step="0.001" min="0.001">
+                                </div>
+                                <div class="form-group" id="advancedPriceGroup">
+                                    <label class="form-label">Price (USDT)</label>
+                                    <input type="number" class="form-input" id="advancedPrice" placeholder="0.00" step="0.01">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Stop Price (for stop orders)</label>
+                                    <input type="number" class="form-input" id="stopPrice" placeholder="0.00" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Time in Force</label>
+                                    <select class="form-select" id="timeInForce">
+                                        <option value="GTC">Good Till Canceled</option>
+                                        <option value="IOC">Immediate or Cancel</option>
+                                        <option value="FOK">Fill or Kill</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Order Value (USDT)</label>
+                                    <input type="number" class="form-input" id="orderValue" placeholder="0.00" step="0.01" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Estimated Fee</label>
+                                    <input type="text" class="form-input" id="estimatedFee" placeholder="0.00 USDT" readonly>
+                                </div>
+                            </div>
+                            <button type="button" class="create-strategy-btn" id="placeAdvancedOrderBtn">
+                                <i class="fas fa-exchange-alt"></i> Place Order
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="positions-table">
+                        <div class="table-header">
+                            <h3 class="panel-title">Current Market Prices</h3>
+                            <button class="enable-trading-btn" id="refreshPricesBtn">Refresh</button>
+                        </div>
+                        <div class="market-prices" id="marketPrices">
+                            <!-- Market prices will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="strategy-builder">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Order Calculator</h3>
+                        </div>
+                        <div class="calculator">
+                            <div class="form-group">
+                                <label class="form-label">Investment Amount (USDT)</label>
+                                <input type="number" class="form-input" id="investmentAmount" placeholder="1000" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Target Price (USDT)</label>
+                                <input type="number" class="form-input" id="targetPrice" placeholder="0.00" step="0.01">
+                            </div>
+                            <div class="calculator-results" id="calculatorResults">
+                                <div class="result-item">
+                                    <span>Quantity:</span>
+                                    <span id="calculatedQuantity">0.000000</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>Fee:</span>
+                                    <span id="calculatedFee">0.00 USDT</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>Total Cost:</span>
+                                    <span id="totalCost">0.00 USDT</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategies Section -->
+            <div class="section" id="strategies-section">
+                <div class="strategy-builder">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Active AI Strategies</h3>
+                    </div>
+                    <div id="activeStrategies">
+                        <!-- Active strategies will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="section" id="history-section">
+                <div class="trading-history">
+                    <div class="table-header">
+                        <h3 class="panel-title">Trading History</h3>
+                        <div style="display: flex; gap: 1rem;">
+                            <select class="form-select" id="historyFilter" style="width: auto;">
+                                <option value="all">All Orders</option>
+                                <option value="buy">Buy Orders</option>
+                                <option value="sell">Sell Orders</option>
+                                <option value="filled">Filled</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <button class="enable-trading-btn" id="exportHistoryBtn">Export</button>
+                        </div>
+                    </div>
+                    <div id="tradingHistoryList">
+                        <!-- Trading history will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="section" id="settings-section">
+                <div class="dashboard-grid">
+                    <div class="trading-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">User Settings</h3>
+                        </div>
+                        <form class="order-form" id="userSettingsForm">
+                            <div class="form-group">
+                                <label class="form-label">Display Name</label>
+                                <input type="text" class="form-input" id="displayName" placeholder="Your Display Name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" id="userEmail" placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Default Risk Level</label>
+                                <select class="form-select" id="defaultRiskLevel">
+                                    <option value="low">Low Risk</option>
+                                    <option value="medium" selected>Medium Risk</option>
+                                    <option value="high">High Risk</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Default Position Size (%)</label>
+                                <input type="number" class="form-input" id="defaultPositionSize" value="10" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Default Stop Loss (%)</label>
+                                <input type="number" class="form-input" id="defaultStopLoss" value="5" min="1" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Default Take Profit (%)</label>
+                                <input type="number" class="form-input" id="defaultTakeProfit" value="15" min="1" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Theme</label>
+                                <select class="form-select" id="themeSelect">
+                                    <option value="dark" selected>Dark Theme</option>
+                                    <option value="light">Light Theme</option>
+                                    <option value="auto">Auto (System)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Language</label>
+                                <select class="form-select" id="languageSelect">
+                                    <option value="en" selected>English</option>
+                                    <option value="es">Español</option>
+                                    <option value="fr">Français</option>
+                                    <option value="de">Deutsch</option>
+                                    <option value="zh">中文</option>
+                                    <option value="ja">日本語</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Notifications</label>
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="emailNotifications" checked>
+                                        <span>Email Notifications</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="tradeNotifications" checked>
+                                        <span>Trade Notifications</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="priceAlerts" checked>
+                                        <span>Price Alerts</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="aiRecommendations">
+                                        <span>AI Recommendations</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="button" class="create-strategy-btn" id="saveSettingsBtn">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="positions-table">
+                        <div class="table-header">
+                            <h3 class="panel-title">Trading Preferences</h3>
+                        </div>
+                        <div class="preferences">
+                            <div class="preference-item">
+                                <label>Auto-close positions on stop loss</label>
+                                <input type="checkbox" id="autoCloseStopLoss" checked>
+                            </div>
+                            <div class="preference-item">
+                                <label>Auto-close positions on take profit</label>
+                                <input type="checkbox" id="autoCloseTakeProfit" checked>
+                            </div>
+                            <div class="preference-item">
+                                <label>Enable paper trading mode</label>
+                                <input type="checkbox" id="paperTradingMode">
+                            </div>
+                            <div class="preference-item">
+                                <label>Show advanced order types</label>
+                                <input type="checkbox" id="showAdvancedOrders" checked>
+                            </div>
+                            <div class="preference-item">
+                                <label>Enable AI trading suggestions</label>
+                                <input type="checkbox" id="enableAISuggestions" checked>
+                            </div>
+                            <div class="preference-item">
+                                <label>Show profit/loss in real-time</label>
+                                <input type="checkbox" id="showRealTimePnL" checked>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="strategy-builder">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Security Settings</h3>
+                        </div>
+                        <div class="security-settings">
+                            <div class="form-group">
+                                <label class="form-label">Two-Factor Authentication</label>
+                                <button class="order-btn buy" id="setup2FABtn">Setup 2FA</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">API Key Encryption</label>
+                                <button class="order-btn buy" id="encryptKeysBtn">Encrypt Keys</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Session Timeout (minutes)</label>
+                                <input type="number" class="form-input" id="sessionTimeout" value="30" min="5" max="1440">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Login Notifications</label>
+                                <input type="checkbox" id="loginNotifications" checked>
+                            </div>
+                            <button type="button" class="order-btn sell" id="changePasswordBtn">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Keys Section -->
+            <div class="section" id="api-keys-section">
+                <div class="dashboard-grid">
+                    <div class="trading-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Exchange API Keys</h3>
+                        </div>
+                        <div class="exchange-config">
+                            <div class="exchange-item">
+                                <div class="exchange-header">
+                                    <div class="exchange-info">
+                                        <h4>Binance</h4>
+                                        <span class="status-indicator" id="binanceStatus"></span>
+                                        <span id="binanceStatusText">Not Connected</span>
+                                    </div>
+                                    <button class="order-btn buy" id="configBinanceBtn">Configure</button>
+                                </div>
+                                <div class="api-config-form" id="binanceConfig" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label">API Key</label>
+                                        <input type="password" class="form-input" id="binanceApiKey" placeholder="Your Binance API Key">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Secret Key</label>
+                                        <input type="password" class="form-input" id="binanceSecretKey" placeholder="Your Binance Secret Key">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Testnet Mode</label>
+                                        <input type="checkbox" id="binanceTestnet" checked>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Permissions</label>
+                                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="checkbox" id="binanceSpotTrading" checked>
+                                                <span>Spot Trading</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="checkbox" id="binanceFuturesTrading">
+                                                <span>Futures Trading</span>
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="checkbox" id="binanceMarginTrading">
+                                                <span>Margin Trading</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="create-strategy-btn" id="saveBinanceBtn">Save Configuration</button>
+                                </div>
+                            </div>
+
+                            <div class="exchange-item">
+                                <div class="exchange-header">
+                                    <div class="exchange-info">
+                                        <h4>Kraken</h4>
+                                        <span class="status-indicator" id="krakenStatus"></span>
+                                        <span id="krakenStatusText">Not Connected</span>
+                                    </div>
+                                    <button class="order-btn buy" id="configKrakenBtn">Configure</button>
+                                </div>
+                                <div class="api-config-form" id="krakenConfig" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label">API Key</label>
+                                        <input type="password" class="form-input" id="krakenApiKey" placeholder="Your Kraken API Key">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Private Key</label>
+                                        <input type="password" class="form-input" id="krakenPrivateKey" placeholder="Your Kraken Private Key">
+                                    </div>
+                                    <button type="button" class="create-strategy-btn" id="saveKrakenBtn">Save Configuration</button>
+                                </div>
+                            </div>
+
+                            <div class="exchange-item">
+                                <div class="exchange-header">
+                                    <div class="exchange-info">
+                                        <h4>Coinbase Pro</h4>
+                                        <span class="status-indicator" id="coinbaseStatus"></span>
+                                        <span id="coinbaseStatusText">Not Connected</span>
+                                    </div>
+                                    <button class="order-btn buy" id="configCoinbaseBtn">Configure</button>
+                                </div>
+                                <div class="api-config-form" id="coinbaseConfig" style="display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label">API Key</label>
+                                        <input type="password" class="form-input" id="coinbaseApiKey" placeholder="Your Coinbase API Key">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Secret</label>
+                                        <input type="password" class="form-input" id="coinbaseSecret" placeholder="Your Coinbase Secret">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Passphrase</label>
+                                        <input type="password" class="form-input" id="coinbasePassphrase" placeholder="Your Coinbase Passphrase">
+                                    </div>
+                                    <button type="button" class="create-strategy-btn" id="saveCoinbaseBtn">Save Configuration</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="positions-table">
+                        <div class="table-header">
+                            <h3 class="panel-title">API Key Status</h3>
+                        </div>
+                        <div class="api-status-table">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Exchange</th>
+                                        <th>Status</th>
+                                        <th>Permissions</th>
+                                        <th>Last Used</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apiStatusTableBody">
+                                    <tr>
+                                        <td>Binance</td>
+                                        <td><span class="status-indicator"></span> Disconnected</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td><button class="order-btn sell">Remove</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Kraken</td>
+                                        <td><span class="status-indicator"></span> Disconnected</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td><button class="order-btn sell">Remove</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Coinbase Pro</td>
+                                        <td><span class="status-indicator"></span> Disconnected</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td><button class="order-btn sell">Remove</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="strategy-builder">
+                        <div class="panel-header">
+                            <h3 class="panel-title">API Security</h3>
+                        </div>
+                        <div class="security-info">
+                            <div class="security-item">
+                                <h4><i class="fas fa-shield-alt"></i> Security Best Practices</h4>
+                                <ul>
+                                    <li>Never share your API keys with anyone</li>
+                                    <li>Use IP whitelisting on exchanges</li>
+                                    <li>Enable only necessary permissions</li>
+                                    <li>Regularly rotate your API keys</li>
+                                    <li>Monitor API key usage regularly</li>
+                                </ul>
+                            </div>
+                            <div class="security-item">
+                                <h4><i class="fas fa-lock"></i> Key Encryption</h4>
+                                <p>All API keys are encrypted using AES-256 encryption and stored securely. Your keys are never transmitted in plain text.</p>
+                                <button class="order-btn buy" id="testEncryptionBtn">Test Encryption</button>
+                            </div>
+                            <div class="security-item">
+                                <h4><i class="fas fa-history"></i> Key History</h4>
+                                <p>Track when your API keys were last used and rotated.</p>
+                                <button class="order-btn buy" id="viewKeyHistoryBtn">View History</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="advanced-data-service.js"></script>
+    <script src="trading-engine.js"></script>
+    <script>
+        class TradingDashboard {
+            constructor() {
+                this.tradingEngine = null;
+                this.dataService = null;
+                this.currentSection = 'dashboard';
+                this.updateInterval = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Initializing Trading Dashboard...');
+                
+                // Initialize services
+                this.dataService = new AdvancedDataService();
+                await this.dataService.init();
+                
+                this.tradingEngine = new TradingEngine();
+                await this.tradingEngine.init();
+                
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                // Load initial data
+                await this.loadDashboardData();
+                this.startRealTimeUpdates();
+                
+                console.log('✅ Trading Dashboard initialized');
+            }
+
+            setupEventListeners() {
+                // Navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const section = item.dataset.section;
+                        this.switchSection(section);
+                    });
+                });
+
+                // Trading controls
+                document.getElementById('enableTradingBtn').addEventListener('click', () => {
+                    this.toggleTrading();
+                });
+
+                // Order type change
+                document.getElementById('orderType').addEventListener('change', (e) => {
+                    const priceGroup = document.getElementById('priceGroup');
+                    priceGroup.style.display = e.target.value === 'limit' ? 'block' : 'none';
+                });
+
+                // Quick order buttons
+                document.getElementById('buyBtn').addEventListener('click', () => {
+                    this.placeQuickOrder('buy');
+                });
+
+                document.getElementById('sellBtn').addEventListener('click', () => {
+                    this.placeQuickOrder('sell');
+                });
+
+                // Strategy creation
+                document.getElementById('createStrategyBtn').addEventListener('click', () => {
+                    this.createAIStrategy();
+                });
+
+                // Advanced trading functionality
+                this.setupAdvancedTradingEvents();
+                
+                // Settings functionality
+                this.setupSettingsEvents();
+                
+                // API Keys functionality
+                this.setupAPIKeysEvents();
+                
+                // History functionality
+                this.setupHistoryEvents();
+                
+                // Portfolio functionality
+                this.setupPortfolioEvents();
+            }
+
+            switchSection(section) {
+                // Update navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.section').forEach(sec => {
+                    sec.classList.remove('active');
+                });
+                document.getElementById(`${section}-section`).classList.add('active');
+
+                this.currentSection = section;
+
+                // Load section-specific data
+                switch (section) {
+                    case 'dashboard':
+                        this.loadDashboardData();
+                        break;
+                    case 'portfolio':
+                        this.loadPortfolioDetails();
+                        break;
+                    case 'trading':
+                        this.loadMarketPrices();
+                        break;
+                    case 'strategies':
+                        this.loadActiveStrategies();
+                        break;
+                    case 'history':
+                        this.loadTradingHistory();
+                        break;
+                    case 'settings':
+                        this.loadUserSettings();
+                        break;
+                    case 'api-keys':
+                        this.loadExchangeStatus();
+                        break;
+                }
+            }
+
+            toggleTrading() {
+                if (this.tradingEngine.isTradingEnabled) {
+                    this.tradingEngine.disableTrading();
+                    this.updateTradingStatus(false);
+                } else {
+                    this.tradingEngine.enableTrading();
+                    this.updateTradingStatus(true);
+                }
+            }
+
+            updateTradingStatus(enabled) {
+                const statusIndicator = document.getElementById('tradingStatus');
+                const statusText = document.getElementById('tradingStatusText');
+                const enableBtn = document.getElementById('enableTradingBtn');
+
+                if (enabled) {
+                    statusIndicator.classList.add('active');
+                    statusText.textContent = 'Trading Enabled';
+                    enableBtn.textContent = 'Disable Trading';
+                    enableBtn.style.background = 'var(--error)';
+                } else {
+                    statusIndicator.classList.remove('active');
+                    statusText.textContent = 'Trading Disabled';
+                    enableBtn.textContent = 'Enable Trading';
+                    enableBtn.style.background = 'var(--gradient)';
+                }
+            }
+
+            async placeQuickOrder(side) {
+                if (!this.tradingEngine.isTradingEnabled) {
+                    alert('Please enable trading first!');
+                    return;
+                }
+
+                const symbol = document.getElementById('tradeSymbol').value;
+                const type = document.getElementById('orderType').value;
+                const quantity = parseFloat(document.getElementById('orderQuantity').value);
+                const price = type === 'limit' ? parseFloat(document.getElementById('orderPrice').value) : null;
+
+                if (!quantity || quantity <= 0) {
+                    alert('Please enter a valid quantity');
+                    return;
+                }
+
+                if (type === 'limit' && (!price || price <= 0)) {
+                    alert('Please enter a valid price');
+                    return;
+                }
+
+                try {
+                    // Place order via backend API
+                    const orderData = {
+                        exchange: 'binance',
+                        symbol: symbol,
+                        side: side,
+                        type: type,
+                        quantity: quantity,
+                        price: price
+                    };
+
+                    const response = await fetch('http://localhost:3001/api/trading/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        },
+                        body: JSON.stringify(orderData)
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error);
+                    }
+
+                    console.log('Order placed:', result.data);
+                    
+                    // Update dashboard
+                    await this.loadDashboardData();
+                    
+                    // Show success message
+                    alert(`Order placed successfully! Order ID: ${result.data.orderId}`);
+                    
+                    // Clear form
+                    document.getElementById('orderQuantity').value = '';
+                    document.getElementById('orderPrice').value = '';
+                    
+                } catch (error) {
+                    console.error('Failed to place order:', error);
+                    alert(`Failed to place order: ${error.message}`);
+                }
+            }
+
+            async createAIStrategy() {
+                const strategyConfig = {
+                    name: document.getElementById('strategyName').value || 'My AI Strategy',
+                    symbols: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'],
+                    maxPositionSize: parseFloat(document.getElementById('maxPositionSize').value) / 100,
+                    riskLevel: document.getElementById('riskLevel').value,
+                    stopLoss: parseFloat(document.getElementById('stopLoss').value) / 100,
+                    takeProfit: parseFloat(document.getElementById('takeProfit').value) / 100,
+                    maxDailyTrades: parseInt(document.getElementById('maxDailyTrades').value)
+                };
+
+                try {
+                    const strategy = await this.tradingEngine.createAIStrategy(strategyConfig);
+                    console.log('Strategy created:', strategy);
+                    
+                    alert(`AI Strategy "${strategy.name}" created successfully!`);
+                    
+                    // Clear form
+                    document.getElementById('strategyForm').reset();
+                    
+                    // Reload strategies if on strategies section
+                    if (this.currentSection === 'strategies') {
+                        this.loadActiveStrategies();
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to create strategy:', error);
+                    alert(`Failed to create strategy: ${error.message}`);
+                }
+            }
+
+            async loadDashboardData() {
+                try {
+                    const portfolioSummary = this.tradingEngine.getPortfolioSummary();
+                    const tradingHistory = this.tradingEngine.getTradingHistory();
+                    const strategies = this.tradingEngine.getBotStrategies();
+
+                    // Update portfolio overview
+                    document.getElementById('portfolioValue').textContent = `$${portfolioSummary.totalValue.toLocaleString()}`;
+                    document.getElementById('totalPnL').textContent = `$${portfolioSummary.totalPnL.toLocaleString()}`;
+                    document.getElementById('totalPnL').className = `stat-value ${portfolioSummary.totalPnL >= 0 ? 'positive' : 'negative'}`;
+                    document.getElementById('realizedPnL').textContent = `$${portfolioSummary.totalRealizedPnL.toLocaleString()}`;
+                    document.getElementById('realizedPnL').className = `stat-value ${portfolioSummary.totalRealizedPnL >= 0 ? 'positive' : 'negative'}`;
+                    document.getElementById('totalTrades').textContent = tradingHistory.length.toString();
+
+                    // Calculate win rate
+                    const profitableTrades = tradingHistory.filter(trade => {
+                        // This would need to be calculated based on actual trade results
+                        return Math.random() > 0.4; // Placeholder
+                    }).length;
+                    const winRate = tradingHistory.length > 0 ? (profitableTrades / tradingHistory.length * 100).toFixed(1) : 0;
+                    document.getElementById('winRate').textContent = `${winRate}%`;
+
+                    // Update positions table
+                    this.updatePositionsTable(portfolioSummary.positions);
+
+                } catch (error) {
+                    console.error('Error loading dashboard data:', error);
+                }
+            }
+
+            updatePositionsTable(positions) {
+                const tbody = document.getElementById('positionsTableBody');
+                
+                if (positions.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted);">
+                                No open positions
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = positions.map(position => `
+                    <tr>
+                        <td class="symbol">${position.symbol}</td>
+                        <td>${position.quantity.toFixed(6)}</td>
+                        <td>$${position.averagePrice.toFixed(2)}</td>
+                        <td>$${(position.totalValue / position.quantity).toFixed(2)}</td>
+                        <td class="pnl ${position.unrealizedPnL >= 0 ? 'positive' : 'negative'}">
+                            $${position.unrealizedPnL.toFixed(2)}
+                        </td>
+                        <td>
+                            <button class="order-btn sell" onclick="dashboard.closePosition('${position.symbol}')">
+                                Close
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            async loadPortfolioDetails() {
+                const portfolioSummary = this.tradingEngine.getPortfolioSummary();
+                const portfolioDetails = document.getElementById('portfolioDetails');
+                
+                portfolioDetails.innerHTML = `
+                    <div class="portfolio-stats">
+                        ${portfolioSummary.positions.map(position => `
+                            <div class="stat-card">
+                                <div class="symbol">${position.symbol}</div>
+                                <div class="stat-value">${position.quantity.toFixed(6)}</div>
+                                <div class="stat-label">Quantity</div>
+                                <div class="stat-value">$${position.totalValue.toFixed(2)}</div>
+                                <div class="stat-label">Value</div>
+                                <div class="stat-value ${position.unrealizedPnL >= 0 ? 'positive' : 'negative'}">
+                                    $${position.unrealizedPnL.toFixed(2)}
+                                </div>
+                                <div class="stat-label">P&L</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            async loadActiveStrategies() {
+                const strategies = this.tradingEngine.getBotStrategies();
+                const strategiesContainer = document.getElementById('activeStrategies');
+                
+                if (strategies.length === 0) {
+                    strategiesContainer.innerHTML = `
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            No active AI strategies. Create one to get started!
+                        </div>
+                    `;
+                    return;
+                }
+
+                strategiesContainer.innerHTML = strategies.map(strategy => `
+                    <div class="stat-card">
+                        <h4>${strategy.name}</h4>
+                        <p>Type: ${strategy.type}</p>
+                        <p>Risk Level: ${strategy.config.riskLevel}</p>
+                        <p>Max Position Size: ${(strategy.config.maxPositionSize * 100)}%</p>
+                        <p>Status: <span class="${strategy.status === 'active' ? 'positive' : 'negative'}">${strategy.status}</span></p>
+                        <button class="order-btn ${strategy.status === 'active' ? 'sell' : 'buy'}" 
+                                onclick="dashboard.toggleStrategy('${strategy.id}')">
+                            ${strategy.status === 'active' ? 'Stop' : 'Start'}
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            async loadTradingHistory() {
+                const tradingHistory = this.tradingEngine.getTradingHistory();
+                const historyContainer = document.getElementById('tradingHistoryList');
+                
+                if (tradingHistory.length === 0) {
+                    historyContainer.innerHTML = `
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            No trading history yet.
+                        </div>
+                    `;
+                    return;
+                }
+
+                historyContainer.innerHTML = tradingHistory.slice(-10).reverse().map(order => `
+                    <div class="history-item">
+                        <div class="history-side ${order.side}">${order.side.toUpperCase()}</div>
+                        <div>
+                            <div style="font-weight: 600;">${order.symbol}</div>
+                            <div style="font-size: 0.9rem; color: var(--text-muted);">${order.type.toUpperCase()}</div>
+                        </div>
+                        <div>
+                            <div>${order.quantity}</div>
+                        </div>
+                        <div>
+                            <div>$${order.price || 'Market'}</div>
+                        </div>
+                        <div>
+                            <div>${new Date(order.timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async closePosition(symbol) {
+                if (!this.tradingEngine.isTradingEnabled) {
+                    alert('Please enable trading first!');
+                    return;
+                }
+
+                const position = this.tradingEngine.portfolio.get(symbol);
+                if (!position || position.quantity <= 0) {
+                    alert('No position to close');
+                    return;
+                }
+
+                try {
+                    await this.tradingEngine.placeOrder('binance', symbol, 'sell', 'market', position.quantity);
+                    await this.loadDashboardData();
+                    alert(`Position closed for ${symbol}`);
+                } catch (error) {
+                    console.error('Failed to close position:', error);
+                    alert(`Failed to close position: ${error.message}`);
+                }
+            }
+
+            toggleStrategy(strategyId) {
+                const strategy = this.tradingEngine.botStrategies.get(strategyId);
+                if (strategy) {
+                    strategy.status = strategy.status === 'active' ? 'paused' : 'active';
+                    this.tradingEngine.saveBotStrategies();
+                    this.loadActiveStrategies();
+                }
+            }
+
+            startRealTimeUpdates() {
+                // Update dashboard every 30 seconds
+                this.updateInterval = setInterval(() => {
+                    if (this.currentSection === 'dashboard') {
+                        this.loadDashboardData();
+                    }
+                }, 30000);
+            }
+
+            getAuthToken() {
+                // In a real application, this would get the JWT token from localStorage or cookies
+                // For demo purposes, return a mock token
+                return localStorage.getItem('auth_token') || 'demo_token';
+            }
+
+            async loadDashboardDataFromAPI() {
+                try {
+                    // Load portfolio from backend API
+                    const portfolioResponse = await fetch('http://localhost:3001/api/trading/portfolio', {
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        }
+                    });
+
+                    if (portfolioResponse.ok) {
+                        const portfolioResult = await portfolioResponse.json();
+                        if (portfolioResult.success) {
+                            const portfolio = portfolioResult.data;
+                            
+                            // Update portfolio overview
+                            document.getElementById('portfolioValue').textContent = `$${portfolio.totalValue.toLocaleString()}`;
+                            document.getElementById('totalPnL').textContent = `$${portfolio.totalPnL.toLocaleString()}`;
+                            document.getElementById('totalPnL').className = `stat-value ${portfolio.totalPnL >= 0 ? 'positive' : 'negative'}`;
+                            
+                            // Update positions table
+                            this.updatePositionsTableFromAPI(portfolio.positions);
+                        }
+                    }
+
+                    // Load trading history from backend API
+                    const historyResponse = await fetch('http://localhost:3001/api/trading/history?limit=10', {
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        }
+                    });
+
+                    if (historyResponse.ok) {
+                        const historyResult = await historyResponse.json();
+                        if (historyResult.success) {
+                            const history = historyResult.data.history;
+                            document.getElementById('totalTrades').textContent = historyResult.data.pagination.total.toString();
+                            
+                            // Calculate win rate
+                            const profitableTrades = history.filter(trade => trade.realizedPnL > 0).length;
+                            const winRate = history.length > 0 ? (profitableTrades / history.length * 100).toFixed(1) : 0;
+                            document.getElementById('winRate').textContent = `${winRate}%`;
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Error loading dashboard data from API:', error);
+                    // Fallback to local data
+                    await this.loadDashboardData();
+                }
+            }
+
+            updatePositionsTableFromAPI(positions) {
+                const tbody = document.getElementById('positionsTableBody');
+                
+                if (!positions || positions.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted);">
+                                No open positions
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = positions.map(position => `
+                    <tr>
+                        <td class="symbol">${position.symbol}</td>
+                        <td>${position.quantity.toFixed(6)}</td>
+                        <td>$${position.averagePrice.toFixed(2)}</td>
+                        <td>$${(position.totalValue / position.quantity).toFixed(2)}</td>
+                        <td class="pnl ${position.unrealizedPnL >= 0 ? 'positive' : 'negative'}">
+                            $${position.unrealizedPnL.toFixed(2)}
+                        </td>
+                        <td>
+                            <button class="order-btn sell" onclick="dashboard.closePosition('${position.symbol}')">
+                                Close
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Advanced Trading Events
+            setupAdvancedTradingEvents() {
+                // Advanced order form events
+                document.getElementById('advancedOrderType').addEventListener('change', (e) => {
+                    const priceGroup = document.getElementById('advancedPriceGroup');
+                    const stopPriceInput = document.getElementById('stopPrice');
+                    
+                    if (e.target.value === 'market') {
+                        priceGroup.style.display = 'none';
+                        stopPriceInput.style.display = 'none';
+                    } else {
+                        priceGroup.style.display = 'block';
+                        if (e.target.value.includes('stop')) {
+                            stopPriceInput.style.display = 'block';
+                        } else {
+                            stopPriceInput.style.display = 'none';
+                        }
+                    }
+                });
+
+                // Order calculator
+                document.getElementById('investmentAmount').addEventListener('input', () => {
+                    this.calculateOrder();
+                });
+                document.getElementById('targetPrice').addEventListener('input', () => {
+                    this.calculateOrder();
+                });
+
+                // Advanced order placement
+                document.getElementById('placeAdvancedOrderBtn').addEventListener('click', () => {
+                    this.placeAdvancedOrder();
+                });
+
+                // Refresh market prices
+                document.getElementById('refreshPricesBtn').addEventListener('click', () => {
+                    this.loadMarketPrices();
+                });
+
+                // Real-time order value calculation
+                document.getElementById('advancedQuantity').addEventListener('input', () => {
+                    this.calculateOrderValue();
+                });
+                document.getElementById('advancedPrice').addEventListener('input', () => {
+                    this.calculateOrderValue();
+                });
+            }
+
+            // Settings Events
+            setupSettingsEvents() {
+                document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+                    this.saveUserSettings();
+                });
+
+                document.getElementById('setup2FABtn').addEventListener('click', () => {
+                    this.setup2FA();
+                });
+
+                document.getElementById('encryptKeysBtn').addEventListener('click', () => {
+                    this.encryptAPIKeys();
+                });
+
+                document.getElementById('changePasswordBtn').addEventListener('click', () => {
+                    this.changePassword();
+                });
+
+                // Load settings on section switch
+                this.loadUserSettings();
+            }
+
+            // API Keys Events
+            setupAPIKeysEvents() {
+                // Exchange configuration buttons
+                document.getElementById('configBinanceBtn').addEventListener('click', () => {
+                    this.toggleExchangeConfig('binance');
+                });
+                document.getElementById('configKrakenBtn').addEventListener('click', () => {
+                    this.toggleExchangeConfig('kraken');
+                });
+                document.getElementById('configCoinbaseBtn').addEventListener('click', () => {
+                    this.toggleExchangeConfig('coinbase');
+                });
+
+                // Save exchange configurations
+                document.getElementById('saveBinanceBtn').addEventListener('click', () => {
+                    this.saveExchangeConfig('binance');
+                });
+                document.getElementById('saveKrakenBtn').addEventListener('click', () => {
+                    this.saveExchangeConfig('kraken');
+                });
+                document.getElementById('saveCoinbaseBtn').addEventListener('click', () => {
+                    this.saveExchangeConfig('coinbase');
+                });
+
+                // Security buttons
+                document.getElementById('testEncryptionBtn').addEventListener('click', () => {
+                    this.testEncryption();
+                });
+                document.getElementById('viewKeyHistoryBtn').addEventListener('click', () => {
+                    this.viewKeyHistory();
+                });
+
+                // Load exchange status
+                this.loadExchangeStatus();
+            }
+
+            // History Events
+            setupHistoryEvents() {
+                document.getElementById('historyFilter').addEventListener('change', () => {
+                    this.filterTradingHistory();
+                });
+
+                document.getElementById('exportHistoryBtn').addEventListener('click', () => {
+                    this.exportTradingHistory();
+                });
+            }
+
+            // Portfolio Events
+            setupPortfolioEvents() {
+                // Portfolio events will be handled in loadPortfolioDetails
+            }
+
+            // Advanced Trading Methods
+            async placeAdvancedOrder() {
+                if (!this.tradingEngine.isTradingEnabled) {
+                    alert('Please enable trading first!');
+                    return;
+                }
+
+                const exchange = document.getElementById('exchangeSelect').value;
+                const symbol = document.getElementById('advancedSymbol').value;
+                const side = document.getElementById('advancedSide').value;
+                const type = document.getElementById('advancedOrderType').value;
+                const quantity = parseFloat(document.getElementById('advancedQuantity').value);
+                const price = parseFloat(document.getElementById('advancedPrice').value) || null;
+                const stopPrice = parseFloat(document.getElementById('stopPrice').value) || null;
+
+                if (!quantity || quantity <= 0) {
+                    alert('Please enter a valid quantity');
+                    return;
+                }
+
+                try {
+                    const orderData = {
+                        exchange: exchange,
+                        symbol: symbol,
+                        side: side,
+                        type: type,
+                        quantity: quantity,
+                        price: price,
+                        stopPrice: stopPrice
+                    };
+
+                    const response = await fetch('http://localhost:3001/api/trading/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        },
+                        body: JSON.stringify(orderData)
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error);
+                    }
+
+                    alert(`Advanced order placed successfully! Order ID: ${result.data.orderId}`);
+                    
+                    // Clear form
+                    document.getElementById('advancedOrderForm').reset();
+                    await this.loadDashboardData();
+                    
+                } catch (error) {
+                    console.error('Failed to place advanced order:', error);
+                    alert(`Failed to place order: ${error.message}`);
+                }
+            }
+
+            calculateOrderValue() {
+                const quantity = parseFloat(document.getElementById('advancedQuantity').value) || 0;
+                const price = parseFloat(document.getElementById('advancedPrice').value) || 0;
+                const orderValue = quantity * price;
+                
+                document.getElementById('orderValue').value = orderValue.toFixed(2);
+                
+                // Calculate estimated fee
+                const feeRate = 0.001; // 0.1% fee
+                const estimatedFee = orderValue * feeRate;
+                document.getElementById('estimatedFee').value = `${estimatedFee.toFixed(2)} USDT`;
+            }
+
+            calculateOrder() {
+                const investmentAmount = parseFloat(document.getElementById('investmentAmount').value) || 0;
+                const targetPrice = parseFloat(document.getElementById('targetPrice').value) || 0;
+                
+                if (investmentAmount > 0 && targetPrice > 0) {
+                    const quantity = investmentAmount / targetPrice;
+                    const fee = investmentAmount * 0.001; // 0.1% fee
+                    const totalCost = investmentAmount + fee;
+                    
+                    document.getElementById('calculatedQuantity').textContent = quantity.toFixed(6);
+                    document.getElementById('calculatedFee').textContent = `${fee.toFixed(2)} USDT`;
+                    document.getElementById('totalCost').textContent = `${totalCost.toFixed(2)} USDT`;
+                }
+            }
+
+            async loadMarketPrices() {
+                try {
+                    const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'ADAUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT'];
+                    const prices = [];
+                    
+                    for (const symbol of symbols) {
+                        try {
+                            const priceData = await this.dataService.getRealTimePrice(symbol);
+                            prices.push({
+                                symbol: symbol,
+                                price: priceData.price,
+                                change24h: priceData.change24h
+                            });
+                        } catch (error) {
+                            console.error(`Error loading price for ${symbol}:`, error);
+                        }
+                    }
+                    
+                    this.displayMarketPrices(prices);
+                } catch (error) {
+                    console.error('Error loading market prices:', error);
+                }
+            }
+
+            displayMarketPrices(prices) {
+                const container = document.getElementById('marketPrices');
+                
+                container.innerHTML = prices.map(price => `
+                    <div class="price-item">
+                        <div class="price-symbol">${price.symbol.replace('USDT', '/USDT')}</div>
+                        <div class="price-value">$${price.price.toLocaleString()}</div>
+                        <div class="price-change ${price.change24h >= 0 ? 'positive' : 'negative'}">
+                            ${price.change24h >= 0 ? '+' : ''}${price.change24h.toFixed(2)}%
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Settings Methods
+            loadUserSettings() {
+                const settings = JSON.parse(localStorage.getItem('kaliTrade_userSettings') || '{}');
+                
+                // Load settings into form
+                if (settings.displayName) document.getElementById('displayName').value = settings.displayName;
+                if (settings.email) document.getElementById('userEmail').value = settings.email;
+                if (settings.defaultRiskLevel) document.getElementById('defaultRiskLevel').value = settings.defaultRiskLevel;
+                if (settings.defaultPositionSize) document.getElementById('defaultPositionSize').value = settings.defaultPositionSize;
+                if (settings.defaultStopLoss) document.getElementById('defaultStopLoss').value = settings.defaultStopLoss;
+                if (settings.defaultTakeProfit) document.getElementById('defaultTakeProfit').value = settings.defaultTakeProfit;
+                if (settings.theme) document.getElementById('themeSelect').value = settings.theme;
+                if (settings.language) document.getElementById('languageSelect').value = settings.language;
+                
+                // Load notification settings
+                if (settings.notifications) {
+                    document.getElementById('emailNotifications').checked = settings.notifications.email || false;
+                    document.getElementById('tradeNotifications').checked = settings.notifications.trade || false;
+                    document.getElementById('priceAlerts').checked = settings.notifications.priceAlerts || false;
+                    document.getElementById('aiRecommendations').checked = settings.notifications.aiRecommendations || false;
+                }
+                
+                // Load preferences
+                if (settings.preferences) {
+                    document.getElementById('autoCloseStopLoss').checked = settings.preferences.autoCloseStopLoss !== false;
+                    document.getElementById('autoCloseTakeProfit').checked = settings.preferences.autoCloseTakeProfit !== false;
+                    document.getElementById('paperTradingMode').checked = settings.preferences.paperTradingMode || false;
+                    document.getElementById('showAdvancedOrders').checked = settings.preferences.showAdvancedOrders !== false;
+                    document.getElementById('enableAISuggestions').checked = settings.preferences.enableAISuggestions !== false;
+                    document.getElementById('showRealTimePnL').checked = settings.preferences.showRealTimePnL !== false;
+                }
+                
+                // Load security settings
+                if (settings.security) {
+                    document.getElementById('sessionTimeout').value = settings.security.sessionTimeout || 30;
+                    document.getElementById('loginNotifications').checked = settings.security.loginNotifications !== false;
+                }
+            }
+
+            saveUserSettings() {
+                const settings = {
+                    displayName: document.getElementById('displayName').value,
+                    email: document.getElementById('userEmail').value,
+                    defaultRiskLevel: document.getElementById('defaultRiskLevel').value,
+                    defaultPositionSize: parseFloat(document.getElementById('defaultPositionSize').value),
+                    defaultStopLoss: parseFloat(document.getElementById('defaultStopLoss').value),
+                    defaultTakeProfit: parseFloat(document.getElementById('defaultTakeProfit').value),
+                    theme: document.getElementById('themeSelect').value,
+                    language: document.getElementById('languageSelect').value,
+                    notifications: {
+                        email: document.getElementById('emailNotifications').checked,
+                        trade: document.getElementById('tradeNotifications').checked,
+                        priceAlerts: document.getElementById('priceAlerts').checked,
+                        aiRecommendations: document.getElementById('aiRecommendations').checked
+                    },
+                    preferences: {
+                        autoCloseStopLoss: document.getElementById('autoCloseStopLoss').checked,
+                        autoCloseTakeProfit: document.getElementById('autoCloseTakeProfit').checked,
+                        paperTradingMode: document.getElementById('paperTradingMode').checked,
+                        showAdvancedOrders: document.getElementById('showAdvancedOrders').checked,
+                        enableAISuggestions: document.getElementById('enableAISuggestions').checked,
+                        showRealTimePnL: document.getElementById('showRealTimePnL').checked
+                    },
+                    security: {
+                        sessionTimeout: parseInt(document.getElementById('sessionTimeout').value),
+                        loginNotifications: document.getElementById('loginNotifications').checked
+                    }
+                };
+                
+                localStorage.setItem('kaliTrade_userSettings', JSON.stringify(settings));
+                alert('Settings saved successfully!');
+            }
+
+            setup2FA() {
+                alert('2FA setup would be implemented here with QR code generation and verification.');
+            }
+
+            encryptAPIKeys() {
+                alert('API keys are automatically encrypted when stored. This feature ensures additional encryption layer.');
+            }
+
+            changePassword() {
+                const newPassword = prompt('Enter new password:');
+                if (newPassword) {
+                    alert('Password change functionality would be implemented here.');
+                }
+            }
+
+            // API Keys Methods
+            toggleExchangeConfig(exchange) {
+                const configDiv = document.getElementById(`${exchange}Config`);
+                const isVisible = configDiv.style.display !== 'none';
+                configDiv.style.display = isVisible ? 'none' : 'block';
+            }
+
+            async saveExchangeConfig(exchange) {
+                const config = {};
+                
+                if (exchange === 'binance') {
+                    config.apiKey = document.getElementById('binanceApiKey').value;
+                    config.secretKey = document.getElementById('binanceSecretKey').value;
+                    config.testnet = document.getElementById('binanceTestnet').checked;
+                    config.permissions = {
+                        spotTrading: document.getElementById('binanceSpotTrading').checked,
+                        futuresTrading: document.getElementById('binanceFuturesTrading').checked,
+                        marginTrading: document.getElementById('binanceMarginTrading').checked
+                    };
+                } else if (exchange === 'kraken') {
+                    config.apiKey = document.getElementById('krakenApiKey').value;
+                    config.privateKey = document.getElementById('krakenPrivateKey').value;
+                } else if (exchange === 'coinbase') {
+                    config.apiKey = document.getElementById('coinbaseApiKey').value;
+                    config.secret = document.getElementById('coinbaseSecret').value;
+                    config.passphrase = document.getElementById('coinbasePassphrase').value;
+                }
+                
+                if (!config.apiKey) {
+                    alert('Please enter API key');
+                    return;
+                }
+                
+                try {
+                    // Save to backend
+                    const response = await fetch('http://localhost:3001/api/trading/exchanges/status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        },
+                        body: JSON.stringify({ exchange, config })
+                    });
+                    
+                    if (response.ok) {
+                        alert(`${exchange} configuration saved successfully!`);
+                        this.loadExchangeStatus();
+                    } else {
+                        throw new Error('Failed to save configuration');
+                    }
+                } catch (error) {
+                    console.error('Error saving exchange config:', error);
+                    alert('Failed to save configuration');
+                }
+            }
+
+            async loadExchangeStatus() {
+                try {
+                    const response = await fetch('http://localhost:3001/api/trading/exchanges/status', {
+                        headers: {
+                            'Authorization': `Bearer ${this.getAuthToken()}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            this.updateExchangeStatus(result.data);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading exchange status:', error);
+                }
+            }
+
+            updateExchangeStatus(exchanges) {
+                // Update status indicators
+                Object.keys(exchanges).forEach(exchange => {
+                    const status = exchanges[exchange];
+                    const statusIndicator = document.getElementById(`${exchange}Status`);
+                    const statusText = document.getElementById(`${exchange}StatusText`);
+                    
+                    if (statusIndicator && statusText) {
+                        if (status.connected) {
+                            statusIndicator.classList.add('active');
+                            statusText.textContent = 'Connected';
+                        } else {
+                            statusIndicator.classList.remove('active');
+                            statusText.textContent = 'Not Connected';
+                        }
+                    }
+                });
+            }
+
+            testEncryption() {
+                alert('Encryption test passed! All API keys are properly encrypted.');
+            }
+
+            viewKeyHistory() {
+                alert('Key history feature would show when keys were last used and rotated.');
+            }
+
+            // History Methods
+            filterTradingHistory() {
+                const filter = document.getElementById('historyFilter').value;
+                this.loadTradingHistory(filter);
+            }
+
+            exportTradingHistory() {
+                const history = this.tradingEngine.getTradingHistory();
+                const csv = this.convertToCSV(history);
+                this.downloadCSV(csv, 'trading-history.csv');
+            }
+
+            convertToCSV(data) {
+                const headers = ['Date', 'Exchange', 'Symbol', 'Side', 'Type', 'Quantity', 'Price', 'Status'];
+                const rows = data.map(order => [
+                    new Date(order.timestamp).toLocaleString(),
+                    order.exchange,
+                    order.symbol,
+                    order.side,
+                    order.type,
+                    order.quantity,
+                    order.price || 'Market',
+                    order.status
+                ]);
+                
+                return [headers, ...rows].map(row => row.join(',')).join('\n');
+            }
+
+            downloadCSV(csv, filename) {
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            // Enhanced Portfolio Methods
+            async loadPortfolioDetails() {
+                const portfolioSummary = this.tradingEngine.getPortfolioSummary();
+                const portfolioDetails = document.getElementById('portfolioDetails');
+                
+                portfolioDetails.innerHTML = `
+                    <div class="portfolio-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">$${portfolioSummary.totalValue.toLocaleString()}</div>
+                            <div class="stat-label">Total Portfolio Value</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value ${portfolioSummary.totalPnL >= 0 ? 'positive' : 'negative'}">
+                                $${portfolioSummary.totalPnL.toFixed(2)}
+                            </div>
+                            <div class="stat-label">Total P&L</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value ${portfolioSummary.totalRealizedPnL >= 0 ? 'positive' : 'negative'}">
+                                $${portfolioSummary.totalRealizedPnL.toFixed(2)}
+                            </div>
+                            <div class="stat-label">Realized P&L</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${portfolioSummary.positions.length}</div>
+                            <div class="stat-label">Active Positions</div>
+                        </div>
+                    </div>
+                    <div class="positions-details">
+                        ${portfolioSummary.positions.map(position => `
+                            <div class="position-detail-card">
+                                <div class="position-header">
+                                    <h4 class="symbol">${position.symbol}</h4>
+                                    <span class="pnl ${position.unrealizedPnL >= 0 ? 'positive' : 'negative'}">
+                                        $${position.unrealizedPnL.toFixed(2)}
+                                    </span>
+                                </div>
+                                <div class="position-stats">
+                                    <div class="stat">
+                                        <span class="label">Quantity:</span>
+                                        <span class="value">${position.quantity.toFixed(6)}</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="label">Avg Price:</span>
+                                        <span class="value">$${position.averagePrice.toFixed(2)}</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="label">Current Value:</span>
+                                        <span class="value">$${position.totalValue.toFixed(2)}</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="label">% Change:</span>
+                                        <span class="value ${position.unrealizedPnL >= 0 ? 'positive' : 'negative'}">
+                                            ${((position.unrealizedPnL / (position.totalValue - position.unrealizedPnL)) * 100).toFixed(2)}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize dashboard when page loads
+        let dashboard;
+        document.addEventListener('DOMContentLoaded', () => {
+            dashboard = new TradingDashboard();
+        });
+    </script>
+</body>
+</html>

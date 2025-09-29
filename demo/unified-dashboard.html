@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaliTrade - Unified Trading Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard-card h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .market-overview {
+            grid-column: 1 / -1;
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .price-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .price-card:hover {
+            transform: scale(1.05);
+        }
+
+        .price-symbol {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-change {
+            font-size: 0.9rem;
+            color: #fbbf24;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .ai-insights {
+            grid-column: 1 / -1;
+        }
+
+        .insight-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4ade80;
+        }
+
+        .insight-title {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-content {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            margin-top: 2rem;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .price-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🚀</span>
+                KaliTrade
+            </div>
+            <div class="status-indicators">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Live Data</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>AI Active</span>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Backend</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="dashboard-card market-overview">
+            <h2>📊 Market Overview</h2>
+            <div class="price-grid" id="priceGrid">
+                <div class="loading"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>🔧 Trading Tools</h2>
+            <div class="feature-grid">
+                <div class="feature-card" onclick="openTradingPlatform()">
+                    <div class="feature-icon">📈</div>
+                    <div class="feature-title">Advanced Trading</div>
+                    <div class="feature-description">Professional trading interface with real-time order books and advanced charting</div>
+                </div>
+                <div class="feature-card" onclick="openAI()">
+                    <div class="feature-icon">🤖</div>
+                    <div class="feature-title">AI Analytics</div>
+                    <div class="feature-description">AI-powered market analysis and trading recommendations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>👑 Premium Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card" onclick="openPremium()">
+                    <div class="feature-icon">✨</div>
+                    <div class="feature-title">Premium UI</div>
+                    <div class="feature-description">Apple App Store quality interface with glassmorphism design</div>
+                </div>
+                <div class="feature-card" onclick="openPortfolio()">
+                    <div class="feature-icon">💼</div>
+                    <div class="feature-title">Portfolio</div>
+                    <div class="feature-description">Real-time portfolio tracking and performance analytics</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card ai-insights">
+            <h2>🧠 AI Market Insights</h2>
+            <div id="aiInsights">
+                <div class="loading"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>KaliTrade - Unified Crypto Trading Platform | Real-time Data | AI-Powered Analysis</p>
+        <p>Last Update: <span id="lastUpdate">--:--:--</span></p>
+    </div>
+
+    <script src="real-data-service.js"></script>
+    <script>
+        class UnifiedDashboard {
+            constructor() {
+                this.realDataService = null;
+                this.updateInterval = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Initializing Unified Dashboard...');
+                
+                // Initialize real data service
+                this.realDataService = new RealDataService();
+                await this.realDataService.init();
+                
+                // Load initial data
+                await this.loadMarketData();
+                await this.loadAIInsights();
+                
+                // Start real-time updates
+                this.startRealTimeUpdates();
+                this.updateLastUpdateTime();
+                
+                console.log('✅ Unified Dashboard initialized');
+            }
+
+            async loadMarketData() {
+                try {
+                    const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'ADAUSDT'];
+                    const priceGrid = document.getElementById('priceGrid');
+                    priceGrid.innerHTML = '';
+
+                    for (const symbol of symbols) {
+                        try {
+                            const priceData = await this.realDataService.getRealTimePrice(symbol);
+                            const priceCard = this.createPriceCard(symbol, priceData);
+                            priceGrid.appendChild(priceCard);
+                        } catch (error) {
+                            console.error(`Error loading ${symbol}:`, error);
+                            const fallbackCard = this.createFallbackPriceCard(symbol);
+                            priceGrid.appendChild(fallbackCard);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading market data:', error);
+                }
+            }
+
+            createPriceCard(symbol, priceData) {
+                const card = document.createElement('div');
+                card.className = 'price-card';
+                
+                const changeClass = priceData.change24h >= 0 ? 'positive' : 'negative';
+                const changeSymbol = priceData.change24h >= 0 ? '+' : '';
+                
+                card.innerHTML = `
+                    <div class="price-symbol">${symbol.replace('USDT', '/USDT')}</div>
+                    <div class="price-value">$${priceData.price.toLocaleString()}</div>
+                    <div class="price-change ${changeClass}">
+                        ${changeSymbol}${priceData.change24h.toFixed(2)}%
+                    </div>
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-top: 0.5rem;">
+                        ${priceData.source.toUpperCase()}
+                    </div>
+                `;
+                
+                return card;
+            }
+
+            createFallbackPriceCard(symbol) {
+                const card = document.createElement('div');
+                card.className = 'price-card';
+                
+                const fallbackPrices = {
+                    'BTCUSDT': 114104,
+                    'ETHUSDT': 3450,
+                    'SOLUSDT': 185,
+                    'BNBUSDT': 650,
+                    'ADAUSDT': 0.5
+                };
+                
+                const price = fallbackPrices[symbol] || 100;
+                
+                card.innerHTML = `
+                    <div class="price-symbol">${symbol.replace('USDT', '/USDT')}</div>
+                    <div class="price-value">$${price.toLocaleString()}</div>
+                    <div class="price-change">Loading...</div>
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-top: 0.5rem;">
+                        FALLBACK
+                    </div>
+                `;
+                
+                return card;
+            }
+
+            async loadAIInsights() {
+                try {
+                    const insightsContainer = document.getElementById('aiInsights');
+                    insightsContainer.innerHTML = '';
+
+                    const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+                    const insights = [];
+
+                    for (const symbol of symbols) {
+                        try {
+                            const analysis = await this.realDataService.getRealAIAnalysis(symbol);
+                            if (analysis) {
+                                insights.push({
+                                    symbol: symbol,
+                                    signal: analysis.signal,
+                                    confidence: analysis.confidence,
+                                    reasoning: analysis.reasoning
+                                });
+                            }
+                        } catch (error) {
+                            console.error(`Error getting AI analysis for ${symbol}:`, error);
+                        }
+                    }
+
+                    if (insights.length === 0) {
+                        insights.push({
+                            symbol: 'GENERAL',
+                            signal: 'NEUTRAL',
+                            confidence: 75,
+                            reasoning: 'AI analysis is being processed. Real-time insights will appear here.'
+                        });
+                    }
+
+                    insights.forEach(insight => {
+                        const insightElement = this.createInsightElement(insight);
+                        insightsContainer.appendChild(insightElement);
+                    });
+
+                } catch (error) {
+                    console.error('Error loading AI insights:', error);
+                }
+            }
+
+            createInsightElement(insight) {
+                const element = document.createElement('div');
+                element.className = 'insight-item';
+                
+                const signalEmoji = {
+                    'BUY': '🟢',
+                    'SELL': '🔴',
+                    'HOLD': '🟡',
+                    'NEUTRAL': '⚪'
+                }[insight.signal] || '⚪';
+
+                element.innerHTML = `
+                    <div class="insight-title">
+                        ${signalEmoji} ${insight.symbol} - ${insight.signal} (${insight.confidence}% confidence)
+                    </div>
+                    <div class="insight-content">
+                        ${insight.reasoning}
+                    </div>
+                `;
+                
+                return element;
+            }
+
+            startRealTimeUpdates() {
+                // Update market data every 30 seconds
+                this.updateInterval = setInterval(() => {
+                    this.loadMarketData();
+                    this.loadAIInsights();
+                    this.updateLastUpdateTime();
+                }, 30000);
+            }
+
+            updateLastUpdateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                document.getElementById('lastUpdate').textContent = timeString;
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+        }
+
+        // Navigation functions
+        function openTradingPlatform() {
+            window.open('advanced-trading-platform.html', '_blank');
+        }
+
+        function openAI() {
+            window.open('ai-analytics-dashboard.html', '_blank');
+        }
+
+        function openPremium() {
+            window.open('premium-ui.html', '_blank');
+        }
+
+        function openPortfolio() {
+            // For now, redirect to premium UI which has portfolio features
+            window.open('premium-ui.html', '_blank');
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new UnifiedDashboard();
+        });
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('Dashboard hidden, pausing updates');
+            } else {
+                console.log('Dashboard visible, resuming updates');
+            }
+        });
+    </script>
+</body>
+</html>
